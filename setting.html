@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Affiliate Table Parser</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 12px;
+            font-size: 14px;
+            resize: vertical;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .export-btn {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-left: 15px;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .debug-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #666;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+
+        .results-table {
+            width: 100%;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            border: 1px solid #f0f0f0;
+        }
+
+        .results-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .results-table th {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 12px;
+            font-weight: 600;
+            text-align: center;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .results-table td {
+            padding: 15px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: middle;
+        }
+
+        .results-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .results-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .results-table tr:hover {
+            background: #e3f2fd;
+            transition: all 0.3s ease;
+        }
+
+        .stt-col {
+            width: 60px;
+            text-align: center;
+            font-weight: 600;
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        .image-col {
+            width: 100px;
+            text-align: center;
+        }
+
+        .product-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-title-col {
+            max-width: 300px;
+            font-weight: 600;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .product-title-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .commission-col {
+            width: 120px;
+            text-align: center;
+        }
+
+        .commission-badge {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .sales-col {
+            width: 120px;
+            text-align: center;
+            font-weight: 700;
+            color: #28a745;
+            font-size: 16px;
+        }
+
+        .link-col {
+            max-width: 300px;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #0066cc;
+        }
+
+        .copy-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            cursor: pointer;
+            margin-left: 5px;
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            background: #218838;
+            transform: scale(1.05);
+        }
+
+        .no-data {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 40px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .results-table {
+                font-size: 12px;
+            }
+
+            .results-table th,
+            .results-table td {
+                padding: 8px 6px;
+            }
+
+            .product-image {
+                width: 40px;
+                height: 40px;
+            }
+
+            .product-title-col {
+                max-width: 200px;
+            }
+
+            .link-col {
+                max-width: 150px;
+                font-size: 10px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Affiliate Table Parser</h1>
+        
+        <!-- Load SheetJS library -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+        
+        <div class="input-section">
+            <textarea id="htmlInput" placeholder="Dán code HTML của bảng affiliate vào đây..."></textarea>
+            <br><br>
+            <div class="button-group">
+                <button class="btn" onclick="parseHTML()">✨ Phân tích dữ liệu</button>
+                <button class="export-btn" onclick="exportToExcel()" id="exportBtn" style="display: none;">📊 Xuất Excel</button>
+            </div>
+        </div>
+
+        <div id="debug" class="debug-section" style="display: none;"></div>
+        <div id="results" class="results"></div>
+    </div>
+
+    <script>
+        function extractAttribute(html, tagName, attribute) {
+            const regex = new RegExp(`<${tagName}[^>]*${attribute}=['"](.*?)['"][^>]*>`, 'gi');
+            const matches = [];
+            let match;
+            while ((match = regex.exec(html)) !== null) {
+                matches.push(match[1]);
+            }
+            return matches;
+        }
+
+        function extractLinks(html) {
+            const regex = /<a[^>]*href=['"]([^'"]*)['"]/gi;
+            const matches = [];
+            let match;
+            while ((match = regex.exec(html)) !== null) {
+                matches.push(match[1]);
+            }
+            return matches;
+        }
+
+        function extractPercentages(html) {
+            const regex = /(\d+(?:\.\d+)?)\s*%/g;
+            const matches = [];
+            let match;
+            while ((match = regex.exec(html)) !== null) {
+                matches.push(match[1] + '%');
+            }
+            return matches;
+        }
+
+        function extractNumbers(html) {
+            const regex = /(\d+(?:\.\d+)?[KkMm]?)/g;
+            const matches = [];
+            let match;
+            while ((match = regex.exec(html)) !== null) {
+                const num = match[1];
+                if (num.length >= 2 || /[KkMm]/.test(num)) {
+                    matches.push(num);
+                }
+            }
+            return matches;
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Hiển thị thông báo ngắn
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✓';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 1000);
+            }).catch(() => {
+                alert('Không thể copy link');
+            });
+        }
+
+        // Biến global để lưu dữ liệu đã parse
+        let parsedData = [];
+
+        function exportToExcel() {
+            if (parsedData.length === 0) {
+                alert('Không có dữ liệu để xuất. Vui lòng phân tích dữ liệu trước!');
+                return;
+            }
+
+            // Tạo workbook mới
+            const workbook = XLSX.utils.book_new();
+
+            // Tạo dữ liệu cho worksheet
+            const worksheetData = [
+                ['STT', 'Link Ảnh', 'Tên sản phẩm', 'Hoa hồng', 'Lượt bán', 'Link Affiliate']
+            ];
+
+            parsedData.forEach((item, index) => {
+                worksheetData.push([
+                    index + 1,
+                    item.imageUrl || '',
+                    item.productTitle || '',
+                    item.commission || '',
+                    item.salesCount || '',
+                    item.affiliateLink || ''
+                ]);
+            });
+
+            // Tạo worksheet từ dữ liệu
+            const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+
+            // Thiết lập độ rộng cột
+            const columnWidths = [
+                { wch: 5 },   // STT
+                { wch: 60 },  // Link Ảnh
+                { wch: 40 },  // Tên sản phẩm
+                { wch: 12 },  // Hoa hồng
+                { wch: 15 },  // Lượt bán
+                { wch: 60 }   // Link Affiliate
+            ];
+            worksheet['!cols'] = columnWidths;
+
+            // Thêm worksheet vào workbook
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Affiliate Products');
+
+            // Tạo tên file với timestamp
+            const now = new Date();
+            const timestamp = now.getFullYear() + 
+                             String(now.getMonth() + 1).padStart(2, '0') + 
+                             String(now.getDate()).padStart(2, '0') + '_' +
+                             String(now.getHours()).padStart(2, '0') + 
+                             String(now.getMinutes()).padStart(2, '0');
+            
+            const fileName = `affiliate_products_${timestamp}.xlsx`;
+
+            // Xuất file
+            XLSX.writeFile(workbook, fileName);
+
+            // Hiển thị thông báo thành công
+            const btn = document.getElementById('exportBtn');
+            const originalText = btn.textContent;
+            btn.textContent = '✅ Đã xuất!';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 2000);
+        }
+
+        function parseHTML() {
+            const htmlInput = document.getElementById('htmlInput').value.trim();
+            const resultsDiv = document.getElementById('results');
+            const debugDiv = document.getElementById('debug');
+            
+            if (!htmlInput) {
+                resultsDiv.innerHTML = '<div class="no-data">Vui lòng nhập HTML để phân tích!</div>';
+                return;
+            }
+
+            let debugInfo = 'Debug Information:\n';
+
+            // Trích xuất các thành phần
+            const imageSrcs = extractAttribute(htmlInput, 'img', 'src');
+            const imageAlts = extractAttribute(htmlInput, 'img', 'alt');
+            const links = extractLinks(htmlInput);
+            const percentages = extractPercentages(htmlInput);
+            const numbers = extractNumbers(htmlInput);
+            
+            debugInfo += `Images found: ${imageSrcs.length}\n`;
+            debugInfo += `Alt texts: ${imageAlts.length}\n`;
+            debugInfo += `Links found: ${links.length}\n`;
+            debugInfo += `Percentages: ${percentages.join(', ')}\n`;
+            debugInfo += `Numbers: ${numbers.slice(0, 10).join(', ')}\n\n`;
+
+            debugDiv.innerHTML = debugInfo;
+            debugDiv.style.display = 'block';
+
+            if (!imageSrcs.length && !imageAlts.length && !links.length) {
+                resultsDiv.innerHTML = '<div class="no-data">Không thể tìm thấy dữ liệu sản phẩm trong HTML!</div>';
+                return;
+            }
+
+            const maxItems = Math.max(imageSrcs.length, imageAlts.length, links.length, 1);
+            
+            // Reset dữ liệu đã parse
+            parsedData = [];
+            
+            let tableHTML = `
+                <div class="results-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="stt-col">STT</th>
+                                <th class="image-col">Ảnh</th>
+                                <th class="product-title-col">Tên sản phẩm</th>
+                                <th class="commission-col">Hoa hồng</th>
+                                <th class="sales-col">Lượt bán</th>
+                                <th class="link-col">Link Affiliate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            for (let i = 0; i < maxItems; i++) {
+                const imgSrc = imageSrcs[i] || '';
+                const productTitle = imageAlts[i] || `Sản phẩm ${i + 1}`;
+                const commission = percentages[i] || 'N/A';
+                const affiliateLink = links[i] || '';
+                
+                // Tìm số lượng bán
+                let salesCount = 'N/A';
+                const salesNumbers = numbers.filter(num => /\d+[Kk]/.test(num));
+                if (salesNumbers[i]) {
+                    salesCount = salesNumbers[i];
+                } else if (numbers[i + 1] && /[Kk]/.test(numbers[i + 1])) {
+                    salesCount = numbers[i + 1];
+                }
+
+                // Lưu dữ liệu vào mảng global để xuất Excel
+                parsedData.push({
+                    imageUrl: imgSrc,
+                    productTitle: productTitle,
+                    commission: commission,
+                    salesCount: salesCount,
+                    affiliateLink: affiliateLink
+                });
+
+                const shortLink = affiliateLink.length > 50 ? affiliateLink.substring(0, 47) + '...' : affiliateLink;
+
+                tableHTML += `
+                    <tr>
+                        <td class="stt-col">${i + 1}</td>
+                        <td class="image-col">
+                            ${imgSrc ? `<img src="${imgSrc}" alt="${productTitle}" class="product-image" onerror="this.style.display='none'">` : '📷'}
+                        </td>
+                        <td class="product-title-col">
+                            <div class="product-title-text" title="${productTitle}">${productTitle}</div>
+                        </td>
+                        <td class="commission-col">
+                            ${commission !== 'N/A' ? `<span class="commission-badge">${commission}</span>` : 'N/A'}
+                        </td>
+                        <td class="sales-col">${salesCount}</td>
+                        <td class="link-col">
+                            ${affiliateLink ? `
+                                <div title="${affiliateLink}">
+                                    ${shortLink}
+                                    <button class="copy-btn" onclick="copyToClipboard('${affiliateLink}')">Copy</button>
+                                </div>
+                            ` : 'N/A'}
+                        </td>
+                    </tr>
+                `;
+            }
+
+            tableHTML += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            resultsDiv.innerHTML = tableHTML;
+            
+            // Hiển thị nút xuất Excel sau khi có dữ liệu
+            document.getElementById('exportBtn').style.display = 'inline-block';
+        }
+
+        // Tự động phân tích khi trang load nếu có dữ liệu mẫu
+        window.onload = function() {
+            const sampleHTML = `<tbody class="[&_tr:last-child]:border-0">
+  <tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+    <td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 w-[60px] sm:w-[80px]">
+      <img src="https://gotssmnagtlnqlddutjb.supabase.co/storage/v1/object/public/affiliate-product-images/1757945709469-14.png" alt="(H1) MUỐI SẢ LÁ CHANH CHAY - ĐẶC SẢN TÂY NINH" class="object-cover rounded-md w-12 h-12 sm:w-16 sm:h-16" loading="lazy" />
+    </td>
+    <td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium max-w-[80px] sm:max-w-[150px] whitespace-nowrap overflow-hidden truncate text-xs sm:text-sm">
+      (H1) MUỐI SẢ LÁ CHANH CHAY - ĐẶC SẢN TÂY NINH
+    </td>
+    <td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 w-[70px] sm:w-[90px] text-center text-xs sm:text-sm text-muted-foreground">
+      <div class="rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-accent/10 text-accent hover:bg-accent/20 flex items-center justify-center gap-1 mx-auto w-fit text-xs" bis_skin_checked="1">
+        10%
+      </div>
+    </td>
+    <td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 w-[80px] sm:w-[100px] text-center text-xs sm:text-sm text-muted-foreground">
+      <div class="flex items-center justify-center gap-1" bis_skin_checked="1">
+        118.2K
+      </div>
+    </td>
+    <td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 w-[80px] sm:w-[120px] text-center">
+      <a href="https://vt.tiktok.com/ZSHn5jh6KEAG9-epBbJ/" target="_blank" rel="noopener noreferrer">
+        <button class="justify-center whitespace-nowrap font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3 flex items-center gap-1 text-xs sm:text-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link w-3 h-3">
+            <path d="M15 3h6v6"></path>
+            <path d="M10 14 21 3"></path>
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1-2-2h6"></path>
+          </svg>
+          Xem
+        </button>
+      </a>
+    </td>
+  </tr>
+</tbody>`;
+            
+            document.getElementById('htmlInput').value = sampleHTML;
+            parseHTML();
+        };
+    </script>
+</body>
+</html>
